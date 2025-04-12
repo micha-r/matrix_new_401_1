@@ -42,6 +42,8 @@
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 
+TIM_HandleTypeDef htim2;
+
 /* USER CODE BEGIN PV */
 #define cs_reset() HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET)
 #define cs_set() HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET)
@@ -60,14 +62,18 @@ SPI_HandleTypeDef hspi1;
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-const uint8_t char_data[][8] = {
-		{ 0x1c, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0x1c },  // 0
+
+int clock = 0;
+
+const uint8_t char_data[][8] = { { 0x1c, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22,
+		0x1c },  // 0
 		{ 0x08, 0x0c, 0x0a, 0x08, 0x08, 0x08, 0x08, 0x3e },  // 1
 		{ 0x1c, 0x22, 0x20, 0x10, 0x08, 0x04, 0x02, 0x3e },  // 2
 		{ 0x1c, 0x22, 0x20, 0x1c, 0x20, 0x20, 0x22, 0x1c },  // 3
@@ -79,7 +85,31 @@ const uint8_t char_data[][8] = {
 		{ 0x1c, 0x22, 0x22, 0x22, 0x3c, 0x20, 0x22, 0x1c },  // 9
 		};
 
-uint8_t disp[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+int disp_1 = 0;
+int disp_2 = 0;
+int disp_3 = 0;
+int disp_4 = 0;
+int disp_5 = 0;
+int disp_6 = 0;
+int disp_7 = 0;
+int disp_8 = 0;
+
+//typedef enum {
+//    REG_NO_OP           = 0x00,
+//    REG_DIGIT_0         = 0x01,
+//    REG_DIGIT_1         = 0x02,
+//    REG_DIGIT_2         = 0x03,
+//    REG_DIGIT_3         = 0x04,
+//    REG_DIGIT_4         = 0x05,
+//    REG_DIGIT_5         = 0x06,
+//    REG_DIGIT_6         = 0x07,
+//    REG_DIGIT_7         = 0x08,
+//    REG_DECODE_MODE     = 0x09,
+//    REG_INTENSITY       = 0x0A,
+//    REG_SCAN_LIMIT      = 0x0B,
+//    REG_SHUTDOWN        = 0x0C,
+//    REG_DISPLAY_TEST    = 0x0F,
+//} MAX7219_REGISTERS;
 
 //void write_reg(uint8_t reg, uint8_t value) {
 //	uint8_t tx_data[2] = { reg, value };
@@ -87,7 +117,6 @@ uint8_t disp[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 //	HAL_SPI_Transmit(&hspi1, tx_data, sizeof(tx_data), HAL_MAX_DELAY);
 //	cs_set();
 //}
-
 
 //void write_reg(uint8_t reg, uint8_t value) {
 //	uint8_t tx_data[2] = { reg, value };
@@ -103,43 +132,97 @@ uint8_t disp[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 //	cs_set();
 //}
 
-
 void write_reg(uint8_t reg, uint8_t value) {
 	uint8_t tx_data[2] = { reg, value };
 	cs_reset();
 	//1
 	HAL_SPI_Transmit(&hspi1, tx_data, sizeof(tx_data), HAL_MAX_DELAY);
-	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
 	//2
 	HAL_SPI_Transmit(&hspi1, tx_data, sizeof(tx_data), HAL_MAX_DELAY);
-	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
 	//3
 	HAL_SPI_Transmit(&hspi1, tx_data, sizeof(tx_data), HAL_MAX_DELAY);
-	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
 	//4
 	HAL_SPI_Transmit(&hspi1, tx_data, sizeof(tx_data), HAL_MAX_DELAY);
-	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
 	//5
 	HAL_SPI_Transmit(&hspi1, tx_data, sizeof(tx_data), HAL_MAX_DELAY);
-	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
 	//6
 	HAL_SPI_Transmit(&hspi1, tx_data, sizeof(tx_data), HAL_MAX_DELAY);
-	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
 	//7
 	HAL_SPI_Transmit(&hspi1, tx_data, sizeof(tx_data), HAL_MAX_DELAY);
-	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
 	//8
 	HAL_SPI_Transmit(&hspi1, tx_data, sizeof(tx_data), HAL_MAX_DELAY);
-	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
+	cs_set();
+}
+
+void write_disp(int i) {
+	cs_reset();
+	//1
+	uint8_t tx_disp_1[2] = { i, char_data[disp_1][8 - i] };
+	HAL_SPI_Transmit(&hspi1, tx_disp_1, sizeof(tx_disp_1), HAL_MAX_DELAY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
+	//2
+	uint8_t tx_disp_2[2] = { i, char_data[disp_2][8 - i] };
+	HAL_SPI_Transmit(&hspi1, tx_disp_2, sizeof(tx_disp_2), HAL_MAX_DELAY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
+	//3
+	uint8_t tx_disp_3[2] = { i, char_data[disp_3][8 - i] };
+	HAL_SPI_Transmit(&hspi1, tx_disp_3, sizeof(tx_disp_3), HAL_MAX_DELAY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
+	//4
+	uint8_t tx_disp_4[2] = { i, char_data[disp_4][8 - i] };
+	HAL_SPI_Transmit(&hspi1, tx_disp_4, sizeof(tx_disp_4), HAL_MAX_DELAY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
+	//5
+	uint8_t tx_disp_5[2] = { i, char_data[disp_5][8 - i] };
+	HAL_SPI_Transmit(&hspi1, tx_disp_5, sizeof(tx_disp_5), HAL_MAX_DELAY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
+	//6
+	uint8_t tx_disp_6[2] = { i, char_data[disp_6][8 - i] };
+	HAL_SPI_Transmit(&hspi1, tx_disp_6, sizeof(tx_disp_6), HAL_MAX_DELAY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
+	//7
+	uint8_t tx_disp_7[2] = { i, char_data[disp_7][8 - i] };
+	HAL_SPI_Transmit(&hspi1, tx_disp_7, sizeof(tx_disp_7), HAL_MAX_DELAY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
+	//8
+	uint8_t tx_disp_8[2] = { i, char_data[disp_8][8 - i] };
+	HAL_SPI_Transmit(&hspi1, tx_disp_8, sizeof(tx_disp_8), HAL_MAX_DELAY);
+	while (HAL_SPI_GetState(&hspi1) != HAL_SPI_STATE_READY)
+		;
 	cs_set();
 }
 
 void matrix_init() {
-	write_reg(0x09, 0x00); // BCD decode mode
-	write_reg(0x0A, 0x01); // Display brightness
-	write_reg(0x0B, 0x07); // Scan limit
-	write_reg(0x0C, 0x01); // Turn ON display
-	write_reg(0x0F, 0x00); // Disable display test
+
+	write_reg(0x09, 0x00);       //  no decoding
+	write_reg(0x0A, 0x05);       //  brightness intensity
+	write_reg(0x0B, 0x07);       //  scan limit = 8 LEDs
+	write_reg(0x0C, 0x01);       //  power down =0，normal mode = 1
+	write_reg(0x0F, 0x00);       //  no test display
+
 }
 
 void matrix_data(int num) {
@@ -155,6 +238,124 @@ void display_all_clear() {
 	}
 }
 
+int lenNumLL(int value) {
+	int len = 0;
+
+	do {
+		value /= 10;
+		len++;
+	} while (value);
+
+	return len;
+}
+
+void update_data_disp() {
+
+	int len = lenNumLL(clock);
+
+	switch (len) {
+
+	case 1: {
+		disp_1 = clock;
+		break;
+	}
+
+	case 2: {
+		disp_1 = clock % 10;
+		disp_2 = (clock - (clock % 10)) / 10;
+		break;
+	}
+
+	case 3: {
+		disp_1 = clock % 10;
+		disp_2 = clock / 10 % 10;
+		disp_3 = (clock - (clock % 100)) / 100;
+		break;
+	}
+
+	case 4: {
+		disp_1 = clock % 10;
+		disp_2 = clock / 10 % 10;
+		disp_3 = clock / 100 % 10;
+		disp_4 = (clock - (clock % 1000)) / 1000;
+		break;
+	}
+
+	case 5: {
+		disp_1 = clock % 10;
+		disp_2 = clock / 10 % 10;
+		disp_3 = clock / 100 % 10;
+		disp_4 = clock / 1000 % 10;
+		disp_5 = (clock - (clock % 10000)) / 10000;
+		break;
+	}
+
+	case 6: {
+		disp_1 = clock % 10;
+		disp_2 = clock / 10 % 10;
+		disp_3 = clock / 100 % 10;
+		disp_4 = clock / 1000 % 10;
+		disp_5 = clock / 10000 % 10;
+		disp_6 = (clock - (clock % 100000)) / 100000;
+		break;
+	}
+
+	case 7: {
+		disp_1 = clock % 10;
+		disp_2 = clock / 10 % 10;
+		disp_3 = clock / 100 % 10;
+		disp_4 = clock / 1000 % 10;
+		disp_5 = clock / 10000 % 10;
+		disp_6 = clock / 100000 % 10;
+		disp_7 = (clock - (clock % 1000000)) / 1000000;
+		break;
+	}
+
+	case 8: {
+		disp_1 = clock % 10;
+		disp_2 = clock / 10 % 10;
+		disp_3 = clock / 100 % 10;
+		disp_4 = clock / 1000 % 10;
+		disp_5 = clock / 10000 % 10;
+		disp_6 = clock / 100000 % 10;
+		disp_7 = clock / 1000000 % 10;
+		disp_8 = (clock - (clock % 10000000)) / 10000000;
+		break;
+	}
+
+	case 9: {
+		clock = 0;
+		break;
+	}
+
+	}
+
+//	disp_1 = clock;
+//	disp_2 = clock;
+//	disp_3 = clock;
+//	disp_4 = clock;
+//	disp_5 = clock;
+//	disp_6 = clock;
+//	disp_7 = clock;
+//	disp_8 = clock;
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if (htim->Instance == TIM2) {
+		update_data_disp();
+		clock++;
+		if (clock > 99999999) {
+			clock = 0;
+		}
+	}
+}
+
+void update_disp() {
+	for (int i = 1; i <= 8; i++) {
+		write_disp(i);
+	}
+}
+
 //void display_number(uint8_t digit, uint8_t number) {
 //	uint8_t data[2];
 //	data[0] = digit;
@@ -164,167 +365,223 @@ void display_all_clear() {
 //	cs_disable();
 //}
 
-
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
-int main(void) {
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
 
-	/* USER CODE BEGIN 1 */
+  /* USER CODE BEGIN 1 */
 
-	/* USER CODE END 1 */
+  /* USER CODE END 1 */
 
-	/* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
-	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-	HAL_Init();
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
 
-	/* USER CODE BEGIN Init */
+  /* USER CODE BEGIN Init */
 
-	/* USER CODE END Init */
+  /* USER CODE END Init */
 
-	/* Configure the system clock */
-	SystemClock_Config();
+  /* Configure the system clock */
+  SystemClock_Config();
 
-	/* USER CODE BEGIN SysInit */
+  /* USER CODE BEGIN SysInit */
 
-	/* USER CODE END SysInit */
+  /* USER CODE END SysInit */
 
-	/* Initialize all configured peripherals */
-	MX_GPIO_Init();
-	MX_SPI1_Init();
-	/* USER CODE BEGIN 2 */
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_SPI1_Init();
+  MX_TIM2_Init();
+  /* USER CODE BEGIN 2 */
+	HAL_TIM_Base_Start_IT(&htim2);
 	matrix_init();
 	HAL_Delay(10);
 	display_all_clear();
-	/* USER CODE END 2 */
+  /* USER CODE END 2 */
 
-	/* Infinite loop */
-	/* USER CODE BEGIN WHILE */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
 	while (1) {
-		for (int i = 0; i < 10; i++) {
-			matrix_data(i);
-			HAL_Delay(1000);
+
+//		for (int i = 0; i < 10; i++) {
+//			matrix_data(i);
+//			HAL_Delay(1000);
 //			display_all_clear();
-//			HAL_Delay(500);
-		}
+////			HAL_Delay(500);
+//		}
 
-		/* USER CODE END WHILE */
+		update_disp();
 
-		/* USER CODE BEGIN 3 */
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
 	}
-	/* USER CODE END 3 */
+  /* USER CODE END 3 */
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
-void SystemClock_Config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-	/** Configure the main internal regulator output voltage
-	 */
-	__HAL_RCC_PWR_CLK_ENABLE();
-	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+  /** Configure the main internal regulator output voltage
+  */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
 
-	/** Initializes the RCC Oscillators according to the specified parameters
-	 * in the RCC_OscInitTypeDef structure.
-	 */
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-	RCC_OscInitStruct.PLL.PLLM = 8;
-	RCC_OscInitStruct.PLL.PLLN = 72;
-	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = 4;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-		Error_Handler();
-	}
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 25;
+  RCC_OscInitStruct.PLL.PLLN = 144;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
 
-	/** Initializes the CPU, AHB and APB buses clocks
-	 */
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-			| RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
-		Error_Handler();
-	}
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 /**
- * @brief SPI1 Initialization Function
- * @param None
- * @retval None
- */
-static void MX_SPI1_Init(void) {
+  * @brief SPI1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI1_Init(void)
+{
 
-	/* USER CODE BEGIN SPI1_Init 0 */
+  /* USER CODE BEGIN SPI1_Init 0 */
 
-	/* USER CODE END SPI1_Init 0 */
+  /* USER CODE END SPI1_Init 0 */
 
-	/* USER CODE BEGIN SPI1_Init 1 */
+  /* USER CODE BEGIN SPI1_Init 1 */
 
-	/* USER CODE END SPI1_Init 1 */
-	/* SPI1 parameter configuration*/
-	hspi1.Instance = SPI1;
-	hspi1.Init.Mode = SPI_MODE_MASTER;
-	hspi1.Init.Direction = SPI_DIRECTION_1LINE;
-	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-	hspi1.Init.NSS = SPI_NSS_SOFT;
-	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
-	hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-	hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
-	hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-	hspi1.Init.CRCPolynomial = 10;
-	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
-		Error_Handler();
-	}
-	/* USER CODE BEGIN SPI1_Init 2 */
+  /* USER CODE END SPI1_Init 1 */
+  /* SPI1 parameter configuration*/
+  hspi1.Instance = SPI1;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
+  hspi1.Init.Direction = SPI_DIRECTION_1LINE;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi1.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI1_Init 2 */
 
-	/* USER CODE END SPI1_Init 2 */
+  /* USER CODE END SPI1_Init 2 */
 
 }
 
 /**
- * @brief GPIO Initialization Function
- * @param None
- * @retval None
- */
-static void MX_GPIO_Init(void) {
-	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
-	/* USER CODE BEGIN MX_GPIO_Init_1 */
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
 
-	/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN TIM2_Init 0 */
 
-	/* GPIO Ports Clock Enable */
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+  /* USER CODE END TIM2_Init 0 */
 
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-	/*Configure GPIO pin : CS_Pin */
-	GPIO_InitStruct.Pin = CS_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
-	HAL_GPIO_Init(CS_GPIO_Port, &GPIO_InitStruct);
+  /* USER CODE BEGIN TIM2_Init 1 */
 
-	/* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 15999;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 100;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
 
-	/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : CS_Pin */
+  GPIO_InitStruct.Pin = CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  HAL_GPIO_Init(CS_GPIO_Port, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -332,16 +589,17 @@ static void MX_GPIO_Init(void) {
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
-void Error_Handler(void) {
-	/* USER CODE BEGIN Error_Handler_Debug */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
 	while (1) {
 	}
-	/* USER CODE END Error_Handler_Debug */
+  /* USER CODE END Error_Handler_Debug */
 }
 
 #ifdef  USE_FULL_ASSERT
